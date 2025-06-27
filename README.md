@@ -1,6 +1,8 @@
 # DroCo – Minimal Unity app for a DJI drone connection
 
-This branch serves as an example of a Unity application for connecting with the DJI drone. It implements a WebSocket server [WebSocketServer.cs](https://github.com/robofit/drone_vstool/blob/minimal_client/DroCo/Assets/Scripts/WebSocketServer.cs) and is prepared for connection with the DJI drone using the [DJI Streamer](https://github.com/robofit/drone_dji_streamer) app.
+This branch serves as an example of a Unity application for connecting with the DJI drone. It implements a WebSocket server [WebSocketServer.cs](https://github.com/robofit/drone_vstool/blob/minimal_client/DroCo/Assets/Scripts/WebSocketServer.cs) and is prepared for connection with the DJI drone using the [DJI Streamer](https://github.com/robofit/drone_dji_streamer) app. When successfully connected to a physical drone, a virtual representation and the video stream should display in the Game window.
+
+<img src=demo.jpg>
 
 ## Installation
  - Clone this repo directly with the branch **minimal_client**:
