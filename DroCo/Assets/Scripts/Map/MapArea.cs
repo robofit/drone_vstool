@@ -4,6 +4,8 @@ using UnityEngine;
 
 public abstract class MapArea {
 
+    public static string DefaultElevation = "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer";
+
     public Vector2[] Area;
 
     public abstract void InitArea();

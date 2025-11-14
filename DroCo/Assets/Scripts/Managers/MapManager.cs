@@ -107,6 +107,7 @@ public class BrnoData : MapArea {
         return MapManager.Location.BRNO;
     }
 
+    //Points are defined in the order: left-top, right-top, right-bottom, left-bottom
     public override void InitArea() {
         Area = new Vector2[] {
             new Vector2(49.2635479f, 16.4276505f),
@@ -131,7 +132,7 @@ public class PilsenData : MapArea {
     }
 
     public override string[] GetElevationData() {
-        return new string[] { };
+        return new string[] { DefaultElevation };
     }
 
     public override MapManager.Location GetLocation() {

@@ -12,12 +12,13 @@ public abstract class InteractiveObject : MonoBehaviour {
 
     public Camera TPVCamera;
     public Camera FPVOnlyCamera;
+    public GameObject JPEGTexture;
     public Transform DroneModel;
 
     public RawImage ArCameraBackground = null;
 
     public virtual void Highlight(bool highlight) {
-        HighlighterTrigger.ChangeTriggeringState(highlight);
+        //HighlighterTrigger.ChangeTriggeringState(highlight);
     }
 
     public virtual void FocusCamera() {
@@ -26,11 +27,10 @@ public abstract class InteractiveObject : MonoBehaviour {
 
     public virtual void SetCameras() {
         CameraManager.Instance.SetCurrentInteractiveObject(this);
+        DroneManager.Instance.SetActiveDrone((Drone) this);
     }
 
     public abstract Texture GetCameraTexture();
-
-    public abstract void ChangeFlightDataDelay(float delay);
 
     public virtual void SetARBackground(RawImage arCameraBackgroundImage) {
         ArCameraBackground = arCameraBackgroundImage;

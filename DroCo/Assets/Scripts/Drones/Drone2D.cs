@@ -1,39 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
-using Esri.ArcGISMapsSDK.Components;
-using Esri.ArcGISMapsSDK.Utils.GeoCoord;
-using Esri.GameEngine.Geometry;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(ArcGISLocationComponent))]
-public class Drone2D : MonoBehaviour {
+
+public abstract class Drone2D : MonoBehaviour {
 
     [SerializeField]
-    private Image droneImage;
-    private ArcGISLocationComponent GPSLocation;
+    protected Image droneImage;
 
+    [SerializeField]
     private Camera Map2DCamera;
     [SerializeField]
     private float FixedSize = 0.005f;
+    [SerializeField]
+    private bool AdaptSizeDynamically = false;
 
 
     private void Update() {
-        if (Map2DCamera != null) {
+        if (Map2DCamera != null && AdaptSizeDynamically) {
             AdaptSize();
         }
     }
 
-    public void InitDrone() {
-        GPSLocation = GetComponent<ArcGISLocationComponent>();
-        GPSLocation.enabled = true;
-        Map2DCamera = GameManager.Instance.MinimapCamera.GetComponent<Camera>();
+    public virtual void InitDrone() {
+        Map2DCamera = MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS ? GameManager.Instance.MinimapCamera.GetComponent<Camera>() : GameManager.Instance.MinimapCameraCesium.transform.GetChild(0).GetComponent<Camera>();
     }
 
-    public void UpdateFlightData(DroneFlightData flightData) {
-        GPSLocation.Position = new ArcGISPoint(flightData.gps.longitude, flightData.gps.latitude, 0, new ArcGISSpatialReference(4326));
-        GPSLocation.Rotation = new ArcGISRotation(flightData.aircraft_orientation.yaw, 0, 0);
-    }
+    public abstract void UpdateFlightData(DroneFlightData flightData);
 
     public void Highlight(bool highlight) {
         droneImage.color = highlight ? Color.green : Color.black;
@@ -45,4 +39,8 @@ public class Drone2D : MonoBehaviour {
         droneImage.transform.localScale = Vector3.one * size;
         //droneImage.transform.forward = droneImage.transform.position - Map2DCamera.transform.position;
     }
+
+    public abstract void SetGPSOffset(GPS offset);
+
+    public abstract GPS GetDroneLocation();
 }

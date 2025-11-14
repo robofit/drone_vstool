@@ -16,10 +16,8 @@ MonoBehaviour:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
-  m_RendererFeatures:
-  - {fileID: 4665488692440236210}
-  - {fileID: 4572434831531942}
-  m_RendererFeatureMap: b28080383f25bf40a65fe4f19a3e1000
+  m_RendererFeatures: []
+  m_RendererFeatureMap: 
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -68,7 +66,7 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
---- !u!114 &4572434831531942
+--- !u!114 &5660001277799778577
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -84,57 +82,4 @@ MonoBehaviour:
   DepthLayerMask:
     serializedVersion: 2
     m_Bits: 0
-  renderingEvent: 0
---- !u!114 &4665488692440236210
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3d80eba6a0f9cf4a8dac0ad2820ecd8, type: 3}
-  m_Name: ScreenSpaceOutlines
-  m_EditorClassIdentifier: 
-  m_Active: 0
-  renderPassEvent: 300
-  outlinesLayerMask:
-    serializedVersion: 2
-    m_Bits: 1024
-  outlinesOccluderLayerMask:
-    serializedVersion: 2
-    m_Bits: 768
-  outlineSettings:
-    outlineColor: {r: 0, g: 0, b: 0, a: 1}
-    outlineScale: 1
-    depthThreshold: 100
-    robertsCrossMultiplier: 68
-    normalThreshold: 0.265
-    steepAngleThreshold: 0.274
-    steepAngleMultiplier: 114
-  viewSpaceNormalsTextureSettings:
-    colorFormat: 0
-    depthBufferBits: 16
-    filterMode: 0
-    backgroundColor: {r: 0, g: 0, b: 0, a: 1}
-    perObjectData: 0
-    enableDynamicBatching: 0
-    enableInstancing: 0
---- !u!114 &5660001277799778577
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70e5811d9aeb3e04fb48321dce46f24d, type: 3}
-  m_Name: HighlightsManagerURP
-  m_EditorClassIdentifier: 
-  m_Active: 0
-  DepthLayerMask:
-    serializedVersion: 2
-    m_Bits: 4055
   renderingEvent: 0

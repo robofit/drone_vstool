@@ -8,7 +8,21 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/GStreamerLoad.unity
     guid: 5d6c43892061c0e438fcb5e7442632bf
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/MainScene.unity
     guid: e126214fef9aa1b4e9be6fbe40a5c99a
-  m_configObjects: {}
+  - enabled: 0
+    path: Assets/Scenes/MainSceneExperiment.unity
+    guid: 0101917cbd8a4ff49b3dcfc6d47704f4
+  - enabled: 0
+    path: Assets/Scenes/MainSceneMockup.unity
+    guid: 706f5d664eeca3d4889999a84174c841
+  - enabled: 1
+    path: Assets/Scenes/MainSceneMobileTopdown.unity
+    guid: 438ca6a9baa54d541b8b58e9830a98a7
+  - enabled: 0
+    path: Assets/Scenes/MainSceneUgCS.unity
+    guid: e895308a5806e0847ba2225477d3b948
+  m_configObjects:
+    com.unity.input.settings: {fileID: 11400000, guid: a4d7782988eca664fb423c2385151486,
+      type: 2}

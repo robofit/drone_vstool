@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using CesiumForUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -18,7 +19,12 @@ public class CameraManager : Singleton<CameraManager> {
     [SerializeField]
     private Camera MainCamera;
 
+    [SerializeField]
+    private Material OutlineMaterial;
+
     private ArcGISCameraControllerTouch cameraControllerTouch;
+    private CesiumCameraController cesiumCameraController;
+    
     private CameraFollowSimple cameraFollow;
 
     public bool FollowingTarget { get; private set; }
@@ -33,12 +39,20 @@ public class CameraManager : Singleton<CameraManager> {
 
     private bool vrSceneActive = false;
 
-    private CameraView currentCameraView = CameraView.FreeLook;
+    public CameraView CurrentCameraView {
+        get; private set;
+    }
+
     private Shader buildingShader;
     private Shader buildingShaderLit;
 
     private void Start() {
-        cameraControllerTouch = MainCamera.GetComponent<ArcGISCameraControllerTouch>();
+        if (MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS) {
+            cameraControllerTouch = MainCamera.GetComponent<ArcGISCameraControllerTouch>();
+        } else if (MapManager.Instance.CurrentMapType == MapManager.MapType.Cesium) {
+            cesiumCameraController = MainCamera.GetComponent<CesiumCameraController>();
+        }
+
         cameraFollow = MainCamera.GetComponent<CameraFollowSimple>();
         FollowingTarget = false;
 
@@ -47,18 +61,18 @@ public class CameraManager : Singleton<CameraManager> {
         buildingShader = UnityEngine.Shader.Find("Custom/MobileOcclusion");
         buildingShaderLit = UnityEngine.Shader.Find("Shader Graphs/SceneNodeSurface");
 
-        SetCameraView(CameraView.FreeLook);
+        //SetCameraView(CameraView.FreeLook);
     }
 
 
     private void Update() {
-        if (GetMouseScollValue() != 0f && FollowingTarget) {
-            if (GameManager.Instance.CurrentDisplayState == GameManager.DisplayState.Scene3DView) {
-                StopFollowingTarget();
-            }
-        }
-
         if (UseARCameraSwitch) {
+            if (GetMouseScollValue() != 0f && FollowingTarget) {
+                if (GameManager.Instance.CurrentDisplayState == GameManager.DisplayState.Scene3DView) {
+                    StopFollowingTarget();
+                }
+            }
+
             if (Keyboard.current[Key.Numpad1].wasPressedThisFrame) {
                 SetCameraView(CameraView.FirstPerson);
                 //} else if (Keyboard.current[Key.Numpad2].wasPressedThisFrame) {
@@ -69,14 +83,45 @@ public class CameraManager : Singleton<CameraManager> {
         }
     }
 
-    private void DisplayVRScene(bool active = true) {
+    public void DisplayVRScene(bool active = true) {
+        if (MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS) {
+
+            GameObject[] buildings = FindGameObjectsInLayer(10);
+            if (buildings != null) {
+                if (active) {
+                    foreach (GameObject building in buildings) {
+                        building.GetComponent<MeshRenderer>().material.shader = buildingShaderLit;
+                        //building.GetComponent<Collider>().enabled = true;
+                    }
+                } else {
+                    foreach (GameObject building in buildings) {
+                        building.GetComponent<MeshRenderer>().material.shader = buildingShader;
+                        //building.GetComponent<Collider>().enabled = false;
+                    }
+                }
+            }
+        }
+    }
+
+    public void DisplayVRSceneLit(bool active = true) {
+        foreach (GameObject building in FindGameObjectsInLayer(10)) {
+            building.GetComponent<MeshRenderer>().enabled = active;
+            building.GetComponent<Collider>().enabled = active;
+        }
+    }
+
+    public void DisplayVRSceneOverlay(bool active = true) {
         if (active) {
-            foreach (GameObject building in FindGameObjectsInLayer(10)) {
-                building.GetComponent<MeshRenderer>().material.shader = buildingShaderLit;
+            foreach (GameObject building in FindGameObjectsInLayer(10)) {                
+                List<Material> materials = new List<Material>(building.GetComponent<MeshRenderer>().materials);
+                materials.Add(OutlineMaterial);
+                building.GetComponent<MeshRenderer>().materials = materials.ToArray();
             }
         } else {
             foreach (GameObject building in FindGameObjectsInLayer(10)) {
-                building.GetComponent<MeshRenderer>().material.shader = buildingShader;
+                Material[] materials = building.GetComponent<MeshRenderer>().materials;
+                Material[] mat = { materials[0] };
+                building.GetComponent<MeshRenderer>().materials = mat;
             }
         }
     }
@@ -116,24 +161,37 @@ public class CameraManager : Singleton<CameraManager> {
     }
 
     public void StartFollowingTarget(Transform transformToFollow, Transform cameraToAlign) {
-        cameraControllerTouch.enabled = false;
+        if (MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS) {
+            cameraControllerTouch.enabled = false;
+        } else if (MapManager.Instance.CurrentMapType == MapManager.MapType.Cesium) {
+            cesiumCameraController.enableMovement = false;
+            cesiumCameraController.enableRotation = false;
+        }
         cameraFollow.enabled = true;
         cameraFollow.StartFollowing(transformToFollow, cameraToAlign);
         FollowingTarget = true;
     }
 
     public void StopFollowingTarget() {
-        cameraControllerTouch.enabled = true;
+        if (MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS) {
+            cameraControllerTouch.enabled = true;
+        } else if (MapManager.Instance.CurrentMapType == MapManager.MapType.Cesium) {
+            cesiumCameraController.enableMovement = true;
+            cesiumCameraController.enableRotation = true;
+        }
         cameraFollow.enabled = false;
         cameraFollow.StopFollowing();
         FollowingTarget = false;
     }
 
     public void SetCameraView(CameraView view) {
+        //if (droneFPV == null && DroneManager.Instance.Drones.Count >= 1) {
+        //    IEnumerator enumerator = DroneManager.Instance.Drones.Values.GetEnumerator();
+        //    enumerator.MoveNext();
+        //    droneFPV = (InteractiveObject) enumerator.Current;
+        //}
         if (droneFPV == null && DroneManager.Instance.Drones.Count >= 1) {
-            IEnumerator enumerator = DroneManager.Instance.Drones.Values.GetEnumerator();
-            enumerator.MoveNext();
-            droneFPV = (InteractiveObject) enumerator.Current;
+            droneFPV = DroneManager.Instance.ActiveDrone;
         }
         if (droneFPV != null) {
             switch (view) {
@@ -151,20 +209,22 @@ public class CameraManager : Singleton<CameraManager> {
 
     private void SetFPV(InteractiveObject firstPerson) {
         firstPerson.FPVOnlyCamera.gameObject.SetActive(true);
+        firstPerson.JPEGTexture.gameObject.SetActive(false);
         firstPerson.SetARBackground(arCameraBackgroundImage);
         firstPerson.FPVOnlyCamera.tag = "MainCamera";
         ARCameraBackground.SetActive(true);
         ARCameraBackground.GetComponent<Canvas>().worldCamera = firstPerson.FPVOnlyCamera;
         arCameraBackgroundImage.texture = firstPerson.GetCameraTexture();
-        currentCameraView = CameraView.FirstPerson;
+        CurrentCameraView = CameraView.FirstPerson;
     }
 
     private void UnsetFPV(InteractiveObject firstPerson) {
         firstPerson.FPVOnlyCamera.gameObject.SetActive(false);
+        firstPerson.JPEGTexture.gameObject.SetActive(true);
         firstPerson.SetARBackground(null);
         firstPerson.FPVOnlyCamera.tag = "Untagged";
         ARCameraBackground.SetActive(false);
-        currentCameraView = CameraView.None;
+        CurrentCameraView = CameraView.None;
     }
 
     private void SetFreeLook() {
@@ -173,7 +233,7 @@ public class CameraManager : Singleton<CameraManager> {
         UI.SetActive(true);
         MainCamera.tag = "MainCamera";
         DisplayVRScene(true);
-        currentCameraView = CameraView.FreeLook;
+        CurrentCameraView = CameraView.FreeLook;
     }
 
     private void UnsetFreeLook() {
@@ -182,7 +242,7 @@ public class CameraManager : Singleton<CameraManager> {
         UI.SetActive(false);
         MainCamera.tag = "Untagged";
         DisplayVRScene(false);
-        currentCameraView = CameraView.None;
+        CurrentCameraView = CameraView.None;
     }
 
     private Matrix4x4 CreateProjectionMatrix() {
@@ -215,7 +275,11 @@ public class CameraManager : Singleton<CameraManager> {
     }
 
     public void SwitchCameraView() {
-        SetCameraView(currentCameraView == CameraView.FreeLook ? CameraView.FirstPerson : CameraView.FreeLook);
+        SetCameraView(CurrentCameraView == CameraView.FreeLook ? CameraView.FirstPerson : CameraView.FreeLook);
+    }
+
+    public void SetCameraFPV(bool fpvOn) {
+        SetCameraView(fpvOn ? CameraView.FirstPerson : CameraView.FreeLook);
     }
 
 }

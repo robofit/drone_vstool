@@ -92,8 +92,4 @@ public class ListItemButton : MonoBehaviour {
         CameraViewImage.texture = texture;
     }
 
-    public void ChangeDelay(float delay) {
-        DelayText.text = "Delay: " + delay.ToString() + " ms";
-        interactiveObject.ChangeFlightDataDelay(delay);
-    }
 }

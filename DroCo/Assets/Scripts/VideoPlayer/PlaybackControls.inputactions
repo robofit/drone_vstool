@@ -1,0 +1,74 @@
+{
+    "name": "PlaybackControls",
+    "maps": [
+        {
+            "name": "Playback",
+            "id": "c49fbeeb-6a54-4b4b-a645-5d213d4d5a9e",
+            "actions": [
+                {
+                    "name": "PlayPause",
+                    "type": "Button",
+                    "id": "8c945dc8-e39a-4353-8956-7ab4e223f64d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Forward",
+                    "type": "Button",
+                    "id": "865bda52-ab3f-4671-b322-1efada2fcc5f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Backward",
+                    "type": "Button",
+                    "id": "404949bf-9cec-4d0d-82fd-f0a8d87638f1",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "b2a4bd49-f968-442f-89d7-0a4386b253cd",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PlayPause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a4e35fd2-0a67-4ccf-b64e-7245585f8a7c",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Forward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8370f119-75a1-4b04-a09c-de3333214689",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Backward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

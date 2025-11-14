@@ -19,7 +19,12 @@ public class GameManager : Singleton<GameManager> {
 
     public enum AppMode {
         Client,
-        Server
+        Server,
+        ClientLocal,
+        Experiment,
+        Simulator,
+        MobileTopDown,
+        UgCS
     }
 
     public enum DisplayState {
@@ -35,41 +40,37 @@ public class GameManager : Singleton<GameManager> {
     }
 
     [SerializeField]
-    private AppMode defaultAppMode = AppMode.Client;
-    
-    [Header("Server Related Settings")]
+    private AppMode defaultAppMode = AppMode.Experiment;
+
     public string ServerIP = "butcluster.ddns.net";
     public int ServerPort = 5555;
     public int RTMPPort = 1935;
-    [SerializeField]
-    private ConnectionBar connectionBar;
-    [SerializeField]
-    private ServerStatusBar serverStatusBar;
 
-    [Header("ArcGIS Related Settings")]
     public string APIKey = "";
     public ArcGISMapComponent Scene3DViewArcGISMap;
     public ArcGISMapComponent Map2DViewArcGISMap;
+    public Transform Map2DViewCesium;
     public ArcGISCameraComponent MainCamera;
     public ArcGISCameraComponent MinimapCamera;
-
-    private ArcGISCameraControllerTouch sceneViewCameraController;
-    private ArcGISCameraControllerTouch minimapCameraController;
-
-    [Header("Cesium Related Settings")]
-    public Camera MainCameraCesium;
-    private MouseCameraController sceneViewCameraControllerCesium;
-
-    [Header("Map Related Settings")]
+    public Camera MinimapCameraCesium;
     public GameObject Scene3DView;
-    [SerializeField]
-    private MinimapUI minimapUI;
-
 
     private bool carDetectorRunning = false;
 
     private bool mapCentered = false;
     private DroneFlightData firstDroneFlightData;
+
+    [SerializeField]
+    private MinimapUI minimapUI;
+    [SerializeField]
+    private ConnectionBar connectionBar;
+    [SerializeField]
+    private ServerStatusBar serverStatusBar;
+    [SerializeField]
+    private ConnectionScreen connectionScreen;
+
+    private ArcGISCameraControllerTouch sceneViewCameraController;
+    private ArcGISCameraControllerTouch minimapCameraController;
 
     public AppMode CurrentAppMode {
         get;
@@ -84,12 +85,10 @@ public class GameManager : Singleton<GameManager> {
     private void Start() {
         ChangeAppMode(defaultAppMode);
 
-        if (MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS) {
-            sceneViewCameraController = MainCamera.GetComponent<ArcGISCameraControllerTouch>();
-        } else if (MapManager.Instance.CurrentMapType == MapManager.MapType.Cesium) {
-            sceneViewCameraControllerCesium = MainCameraCesium.GetComponent<MouseCameraController>();
-        }
-            minimapCameraController = MinimapCamera.GetComponent<ArcGISCameraControllerTouch>();
+        sceneViewCameraController = MainCamera?.GetComponent<ArcGISCameraControllerTouch>();
+        minimapCameraController = MinimapCamera?.GetComponent<ArcGISCameraControllerTouch>();
+
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
         StartCoroutine(InitSceneView());
     }
@@ -99,11 +98,28 @@ public class GameManager : Singleton<GameManager> {
         switch (CurrentAppMode) {
             case AppMode.Client:
                 CloseServerMode();
+                CloseClientLocalMode();
                 StartClientMode();
                 break;
             case AppMode.Server:
                 CloseClientMode();
+                CloseClientLocalMode();
                 StartServerMode();
+                break;
+            case AppMode.ClientLocal:
+                CloseServerMode();
+                CloseClientMode();
+                StartClientLocalMode();
+                break;
+            case AppMode.Experiment:
+                ExperimentManager.Instance.LoadMissionTraining(true);
+                break;
+            case AppMode.MobileTopDown:
+                //StartClientNoVideoMode();
+                break;
+            case AppMode.UgCS:
+                break;
+            case AppMode.Simulator:
                 break;
         }
     }
@@ -113,6 +129,24 @@ public class GameManager : Singleton<GameManager> {
         serverStatusBar.gameObject.SetActive(false);
 
         LoadLastServerIP();
+    }
+
+    private void StartClientLocalMode() {
+        connectionBar.gameObject.SetActive(true);
+        serverStatusBar.gameObject.SetActive(false);
+
+        LoadLastServerIP();
+    }
+
+    public void StartClientNoVideoMode(string ip) {
+        WebSocketClientSimpleReceiver.Instance.ConnectToServer(ip, ServerPort, requireVideo: false);
+    }
+
+    private void CloseClientLocalMode() {
+        WebSocketClientSimpleReceiver.Instance.Disconnect();
+
+        // cleanup all drones
+        DroneManager.Instance.DestroyDroneAll();
     }
 
     private void CloseClientMode() {
@@ -154,7 +188,11 @@ public class GameManager : Singleton<GameManager> {
         ServerIP = PlayerPrefs.GetString("serverIP", null);
         connectionBar.SetConnectionStatus(ConnectionStatus.Disconnected);
         if (!string.IsNullOrEmpty(ServerIP)) {
-            WebSocketClient.Instance.ConnectToServer(ServerIP, ServerPort);
+            if (CurrentAppMode == AppMode.Client) {
+                WebSocketClient.Instance.ConnectToServer(ServerIP, ServerPort);
+            } else if (CurrentAppMode == AppMode.ClientLocal) {
+                WebSocketClientSimpleReceiver.Instance.ConnectToServer(ServerIP, ServerPort);
+            }
             connectionBar.SetServerIP(ServerIP);
         }
     }
@@ -162,7 +200,11 @@ public class GameManager : Singleton<GameManager> {
     public void SaveServerIP(string serverIP) {
         ServerIP = serverIP;
         PlayerPrefs.SetString("serverIP", ServerIP);
-        WebSocketClient.Instance.ConnectToServer(ServerIP, ServerPort);
+        if (CurrentAppMode == AppMode.Client) {
+            WebSocketClient.Instance.ConnectToServer(ServerIP, ServerPort);
+        } else if (CurrentAppMode == AppMode.ClientLocal) {
+            WebSocketClientSimpleReceiver.Instance.ConnectToServer(ServerIP, ServerPort);
+        }
     }
 
     private IEnumerator InitSceneView() {
@@ -185,11 +227,7 @@ public class GameManager : Singleton<GameManager> {
         CurrentDisplayState = DisplayState.Scene3DView;
         minimapUI.SetSceneView();
 
-        if (MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS) {
-            sceneViewCameraController.enabled = CameraManager.Instance.FollowingTarget ? false : true;
-        } else if (MapManager.Instance.CurrentMapType == MapManager.MapType.Cesium) {
-            sceneViewCameraControllerCesium.enabled = CameraManager.Instance.FollowingTarget ? false : true;
-        }
+        sceneViewCameraController.enabled = CameraManager.Instance.FollowingTarget ? false : true;
         minimapCameraController.enabled = false;
     }
 
@@ -197,11 +235,7 @@ public class GameManager : Singleton<GameManager> {
         CurrentDisplayState = DisplayState.Map2DView;
         minimapUI.SetMinimapView();
 
-        if (MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS) {
-            sceneViewCameraController.enabled = false;
-        } else if (MapManager.Instance.CurrentMapType == MapManager.MapType.Cesium) {
-            sceneViewCameraControllerCesium.enabled = false;
-        }
+        sceneViewCameraController.enabled = false;
         minimapCameraController.enabled = true;
     }
 
@@ -216,6 +250,14 @@ public class GameManager : Singleton<GameManager> {
         }
     }
 
+    public void HandleClientLocalConnected() {
+        connectionBar.SetConnectionStatus(ConnectionStatus.Connected);
+        if (CurrentAppMode == AppMode.MobileTopDown || CurrentAppMode == AppMode.UgCS) {
+            connectionScreen.OnConnected();
+            connectionScreen.OpenConnectionScreen(false);
+        }
+    }
+
     public void HandleHandshakeDone() {
         WebSocketClient.Instance.SendDroneListRequest();
         connectionBar.SetConnectionStatus(ConnectionStatus.Connected);
@@ -223,10 +265,21 @@ public class GameManager : Singleton<GameManager> {
 
     public void HandleConnectionFailed() {
         connectionBar.SetConnectionStatus(ConnectionStatus.Disconnected);
+        if (CurrentAppMode == AppMode.MobileTopDown || CurrentAppMode == AppMode.UgCS) {
+            connectionScreen.OnDisconnected();
+            //connectionScreen.OpenConnectionScreen(true);
+            DroneManager.Instance.DestroyDroneAll();
+        }
+    }
+
+    public void RestartServer() {
+        CloseServerMode();
+        CameraManager.Instance.SetCameraFPV(false);
+        StartServerMode();
     }
 
     public void CenterMap(DroneFlightData flightData) {
-        if (!mapCentered) {
+        if (!mapCentered && MapManager.Instance.CurrentMapType == MapManager.MapType.ArcGIS) {
             mapCentered = true;
             firstDroneFlightData = flightData;
 

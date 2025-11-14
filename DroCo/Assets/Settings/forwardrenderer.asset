@@ -1,5 +1,41 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8813326719598846842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3d80eba6a0f9cf4a8dac0ad2820ecd8, type: 3}
+  m_Name: ScreenSpaceOutlines
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  renderPassEvent: 300
+  outlinesLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  outlinesOccluderLayerMask:
+    serializedVersion: 2
+    m_Bits: 768
+  outlineSettings:
+    outlineColor: {r: 0, g: 0, b: 0, a: 1}
+    outlineScale: 1
+    depthThreshold: 100
+    robertsCrossMultiplier: 68
+    normalThreshold: 0.265
+    steepAngleThreshold: 0.274
+    steepAngleMultiplier: 114
+  viewSpaceNormalsTextureSettings:
+    colorFormat: 0
+    depthBufferBits: 16
+    filterMode: 0
+    backgroundColor: {r: 0, g: 0, b: 0, a: 0}
+    perObjectData: 0
+    enableDynamicBatching: 0
+    enableInstancing: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17,9 +53,8 @@ MonoBehaviour:
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
-  - {fileID: 163326076239869367}
-  - {fileID: 3447111417478570556}
-  m_RendererFeatureMap: b7f5d574334044023ce200149299d62f
+  - {fileID: -8813326719598846842}
+  m_RendererFeatureMap: 861cda240bc6b085
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -68,56 +103,3 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
---- !u!114 &163326076239869367
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3d80eba6a0f9cf4a8dac0ad2820ecd8, type: 3}
-  m_Name: ScreenSpaceOutlines
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  renderPassEvent: 300
-  outlinesLayerMask:
-    serializedVersion: 2
-    m_Bits: 1024
-  outlinesOccluderLayerMask:
-    serializedVersion: 2
-    m_Bits: 768
-  outlineSettings:
-    outlineColor: {r: 0, g: 0, b: 0, a: 1}
-    outlineScale: 1
-    depthThreshold: 100
-    robertsCrossMultiplier: 68
-    normalThreshold: 0.265
-    steepAngleThreshold: 0.274
-    steepAngleMultiplier: 114
-  viewSpaceNormalsTextureSettings:
-    colorFormat: 0
-    depthBufferBits: 16
-    filterMode: 0
-    backgroundColor: {r: 0, g: 0, b: 0, a: 0}
-    perObjectData: 0
-    enableDynamicBatching: 0
-    enableInstancing: 0
---- !u!114 &3447111417478570556
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70e5811d9aeb3e04fb48321dce46f24d, type: 3}
-  m_Name: HighlightsManagerURP
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  DepthLayerMask:
-    serializedVersion: 2
-    m_Bits: 4055
-  renderingEvent: 0

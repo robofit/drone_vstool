@@ -10,6 +10,7 @@ using UnityEngine;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 using System.Net.NetworkInformation;
+using Unity.VisualScripting;
 
 public class TestBehavior : WebSocketBehavior {
     protected override void OnOpen() {
@@ -39,10 +40,68 @@ public class TestBehavior : WebSocketBehavior {
     }
 }
 
+public class FlightDataForwardBehavior : WebSocketBehavior {
+    protected override void OnOpen() {
+        base.OnOpen();
+        Debug.Log("Connection open on /flightData");
+    }
+
+    protected override void OnClose(CloseEventArgs e) {
+        base.OnClose(e);
+        Debug.Log("Connection close on /flightData: " + e.Reason);
+    }
+
+    protected override void OnError(ErrorEventArgs e) {
+        base.OnError(e);
+        Debug.Log("Connection error on /flightData: " + e.Message + " ..exception: " + e.Exception);
+    }
+
+    protected override void OnMessage(MessageEventArgs e) {
+        base.OnMessage(e);
+        Debug.Log(e.Data);
+
+        try {
+            Send("hello response");
+        } catch (Exception ex) {
+            Debug.LogError(ex.Message);
+        }
+    }
+}
+
+public class FlightDataNoVideoForwardBehavior : WebSocketBehavior {
+    protected override void OnOpen() {
+        base.OnOpen();
+        Debug.Log("Connection open on /flightDataNoVideo");
+    }
+
+    protected override void OnClose(CloseEventArgs e) {
+        base.OnClose(e);
+        Debug.Log("Connection close on /flightDataNoVideo: " + e.Reason);
+    }
+
+    protected override void OnError(ErrorEventArgs e) {
+        base.OnError(e);
+        Debug.Log("Connection error on /flightDataNoVideo: " + e.Message + " ..exception: " + e.Exception);
+    }
+
+    protected override void OnMessage(MessageEventArgs e) {
+        base.OnMessage(e);
+        Debug.Log(e.Data);
+
+        try {
+            Send("hello response");
+        } catch (Exception ex) {
+            Debug.LogError(ex.Message);
+        }
+    }
+}
+
+
+
 public class WebSocketServerBehavior : WebSocketBehavior {
 
     [Serializable]
-    private class Message<T> {
+    public class Message<T> {
         public string type;
         public T data;
     }
@@ -61,6 +120,7 @@ public class WebSocketServerBehavior : WebSocketBehavior {
     }
 
     private bool handshake_done = false;
+    
 
     protected override void OnOpen() {
         base.OnOpen();
@@ -70,19 +130,89 @@ public class WebSocketServerBehavior : WebSocketBehavior {
     protected override void OnMessage(MessageEventArgs e) {
         base.OnMessage(e);
 
-        //Debug.Log(e.Data);
-        Message<string> msg = JsonUtility.FromJson<Message<string>>(e.Data);
-        if (msg.type == "hello") {
-            DoHandshake(ID, JsonUtility.FromJson<Message<Hello>>(e.Data));
-        } else if (handshake_done && msg.type == "data_broadcast") {
-
-            Message<DroneFlightData> dfd = JsonUtility.FromJson<Message<DroneFlightData>>(e.Data);
-            
-            UnityMainThreadDispatcher.Instance().Enqueue(UpdateDroneFlightData(dfd.data));
+        if (e.IsBinary) {
+            HandleBinaryMessage(e.RawData);
+        } else if (e.IsText) {
+            HandleTextMessage(e.Data);
         } else {
-            Debug.LogError("Unknown data received! " + e.Data);
+            Debug.LogError("Unknown WebSocket message format!");
         }
     }
+
+    private void HandleTextMessage(string data) {
+        //Debug.Log("Received Text Message, size " + data.Length);
+
+        Message<string> msg = JsonUtility.FromJson<Message<string>>(data);
+        if (msg.type == "hello") {
+            DoHandshake(ID, JsonUtility.FromJson<Message<Hello>>(data));
+        } else {
+            Debug.LogError("Unexpected text message type: " + msg.type);
+        }
+    }
+
+    private void HandleBinaryMessage(byte[] data) {
+        //Debug.Log($"Received Binary Message, size: {data.Length}");
+
+        if (!handshake_done) {
+            Debug.LogWarning("Binary message received before handshake done, ignoring.");
+            return;
+        }
+
+        // 1. First 4 bytes = JSON length
+        int jsonLength = System.BitConverter.ToInt32(data, 0);
+        jsonLength = System.Net.IPAddress.NetworkToHostOrder(jsonLength); // convert big-endian to little-endian
+
+        if (data.Length < 4 + jsonLength) {
+            Debug.LogError("Invalid binary message: JSON length larger than payload.");
+            return;
+        }
+
+        // 2. Extract JSON bytes
+        byte[] jsonBytes = new byte[jsonLength];
+        System.Buffer.BlockCopy(data, 4, jsonBytes, 0, jsonLength);
+
+        string jsonString = System.Text.Encoding.UTF8.GetString(jsonBytes);
+        //Debug.Log("Received JSON: " + jsonString);
+
+        // 3. Parse DroneFlightData
+        Message<DroneFlightData> dfd = JsonUtility.FromJson<Message<DroneFlightData>>(jsonString);
+        if (dfd == null) {
+            Debug.LogError("Failed to parse DroneFlightData!");
+            return;
+        }
+
+        // 4.Extract JPEG image bytes(if any)
+        int jpegStart = 4 + jsonLength + 4;
+        int jpegLength = data.Length - jpegStart;
+
+        if (jpegLength > 0) {
+            byte[] jpegBytes = new byte[jpegLength];
+            System.Buffer.BlockCopy(data, jpegStart, jpegBytes, 0, jpegLength);
+            dfd.data.frame = jpegBytes;
+        } else {
+            Debug.LogWarning("No JPEG image found in binary message.");
+        }
+
+        DroneDataPoller.Instance?.PushLatestData(dfd.data);
+    }
+
+    //protected override void OnMessage(MessageEventArgs e) {
+    //    base.OnMessage(e);
+
+    //    //Debug.Log(e.Data);
+    //    Message<string> msg = JsonUtility.FromJson<Message<string>>(e.Data);
+    //    if (msg.type == "hello") {
+    //        DoHandshake(ID, JsonUtility.FromJson<Message<Hello>>(e.Data));
+    //    } else if (handshake_done && msg.type == "data_broadcast") {
+
+    //        Message<DroneFlightData> dfd = JsonUtility.FromJson<Message<DroneFlightData>>(e.Data);
+
+    //        DroneDataPoller.Instance?.PushLatestData(dfd.data);
+    //        //UnityMainThreadDispatcher.Instance().Enqueue(UpdateDroneFlightData(dfd.data));
+    //    } else {
+    //        Debug.LogError("Unknown data received! " + e.Data);
+    //    }
+    //}
 
     protected override void OnClose(CloseEventArgs e) {
         base.OnClose(e);
@@ -137,7 +267,7 @@ public class WebSocketServerBehavior : WebSocketBehavior {
     }
 
     private IEnumerator UpdateDroneFlightData(DroneFlightData flightData) {
-        DroneManager.Instance.HandleReceivedDroneData(flightData);
+        DroneManager.Instance.HandleReceivedDroneDataAndForward(flightData);
         yield return null;
     }
 }
@@ -157,6 +287,8 @@ public class WebSocketServer : Singleton<WebSocketServer> {
         try {
             Server = new WebSocketSharp.Server.WebSocketServer("ws://" + Address + ":" + Port);
             Server.AddWebSocketService<WebSocketServerBehavior>("/");
+            Server.AddWebSocketService<FlightDataForwardBehavior>("/flightData");
+            Server.AddWebSocketService<FlightDataNoVideoForwardBehavior>("/flightDataNoVideo");
 
             //Server.AddWebSocketService<TestBehavior>("/test");
 
@@ -240,7 +372,26 @@ public class WebSocketServer : Singleton<WebSocketServer> {
 
     }
 
+    public void SendFlightDataMessageToClients(string message) {
+        foreach (string clientID in Server.WebSocketServices["/flightData"].Sessions.IDs) {
+            Server.WebSocketServices["/flightData"].Sessions.SendTo(message, clientID);
+        }
+    }
+
+    public void SendFlightDataNoVideoMessageToClients(string message) {
+        foreach (string clientID in Server.WebSocketServices["/flightDataNoVideo"].Sessions.IDs) {
+            Server.WebSocketServices["/flightDataNoVideo"].Sessions.SendTo(message, clientID);
+        }
+    }
+
     private void OnApplicationQuit() {
+        if (Server != null) {
+            Server.Stop();
+            Server = null;
+        }
+    }
+
+    private void OnDestroy() {
         if (Server != null) {
             Server.Stop();
             Server = null;

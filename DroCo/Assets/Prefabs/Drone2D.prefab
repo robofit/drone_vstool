@@ -32,7 +32,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4900014931491596165}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -94,7 +93,9 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -109,7 +110,7 @@ GameObject:
   - component: {fileID: 4900014931491596165}
   - component: {fileID: 4900014931491596160}
   - component: {fileID: 4900014931491596167}
-  - component: {fileID: 4900014931491596166}
+  - component: {fileID: 5479043101682924544}
   m_Layer: 11
   m_Name: Drone2D
   m_TagString: Untagged
@@ -124,6 +125,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4900014931491596164}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -131,7 +133,6 @@ Transform:
   m_Children:
   - {fileID: 4900014930181882973}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4900014931491596160
 MonoBehaviour:
@@ -181,7 +182,9 @@ MonoBehaviour:
     Heading: 0
     Pitch: 90
     Roll: 0
---- !u!114 &4900014931491596166
+  surfacePlacementMode: 0
+  surfacePlacementOffset: 0
+--- !u!114 &5479043101682924544
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -190,8 +193,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 4900014931491596164}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b4d0e63c50949348bf36806bff83f28, type: 3}
+  m_Script: {fileID: 11500000, guid: 649f3319ebc405c47a49b9ce2d8a4cc3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   droneImage: {fileID: 4900014930181882974}
-  FixedSize: 0.0002
+  FixedSize: 0.005
