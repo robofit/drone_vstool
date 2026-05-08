@@ -23,7 +23,7 @@ The mission can also be displayed in augmented reality:
 <img src=arView.png />
 
 Multi-drone use cases are also supported:
-<img src=drocoV2_overview.png />
+<img src=droco_gui.png />
 
 ## Installation
  - Install [UnxUtils](https://sourceforge.net/projects/unxutils/) to be able to patch ArcGIS scripts using patch_arcgis.bat script.
